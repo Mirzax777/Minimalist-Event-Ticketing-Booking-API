@@ -10,7 +10,6 @@ from sqlalchemy import (
     String,
     Text,
 )
-from sqlalchemy.orm import validates
 from sqlalchemy.sql import func
 
 from app.database import Base
@@ -73,46 +72,40 @@ class Event(Base):
         ),
     )
 
-    @validates("available_seats")
-    def validate_available_seats(self, key, value):
-        if value < 0:
-            raise ValueError("Available seats cannot be negative.")
-        if self.total_seats is not None and value > self.total_seats:
-            raise ValueError("Available seats cannot exceed total seats.")
-        return value
 
-    class Booking(Base):
-        id = Column(Integer, Identity(), primary_key=True)
-        user_id = Column(
-            Integer,
-            ForeignKey("users.id", ondelete="RESTRICT"),
-            nullable=False,
-            index=True,
-        )
-        event_id = Column(
-            Integer,
-            ForeignKey("events.id", ondelete="RESTRICT"),
-            nullable=False,
-            index=True,
-        )
-        quantity = Column(Integer, nullable=False)
-        total_price = Column(Numeric(10, 2), nullable=False)
-        status = Column(String, nullable=False, server_default="PENDING")
-        created_at = Column(
-            TIMESTAMP(timezone=True), nullable=False, server_default=func.now()
-        )
-        updated_at = Column(
-            TIMESTAMP(timezone=True),
-            nullable=False,
-            server_default=func.now(),
-            onupdate=func.now(),
-        )
+class Booking(Base):
+    __tablename__ = "bookings"
+    id = Column(Integer, Identity(), primary_key=True)
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    event_id = Column(
+        Integer,
+        ForeignKey("events.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    quantity = Column(Integer, nullable=False)
+    total_price = Column(Numeric(10, 2), nullable=False)
+    status = Column(String(20), nullable=False, server_default="PENDING")
+    created_at = Column(
+        TIMESTAMP(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at = Column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
 
-        __table_args__ = (
-            CheckConstraint("quantity > 0", name="check_positive_quantity"),
-            CheckConstraint(
-                "status IN ('PENDING', 'CONFIRMED', 'CANCELLED')",
-                name="check_valid_booking_status",
-            ),
-            CheckConstraint("total_price >= 0", name="check_positive_total_price"),
-        )
+    __table_args__ = (
+        CheckConstraint("quantity > 0", name="check_positive_quantity"),
+        CheckConstraint(
+            "status IN ('PENDING', 'CONFIRMED', 'CANCELLED')",
+            name="check_valid_booking_status",
+        ),
+        CheckConstraint("total_price >= 0", name="check_positive_total_price"),
+    )

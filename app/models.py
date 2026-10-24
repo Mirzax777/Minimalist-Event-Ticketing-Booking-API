@@ -46,7 +46,7 @@ class User(Base):
 class Event(Base):
     __tablename__ = "events"
 
-    id = Column(Integer, Identity(start=1, increment=1), primary_key=True)
+    id = Column(Integer, Identity(), primary_key=True)
     created_by = Column(
         Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
     )
@@ -80,3 +80,39 @@ class Event(Base):
         if self.total_seats is not None and value > self.total_seats:
             raise ValueError("Available seats cannot exceed total seats.")
         return value
+
+    class Booking(Base):
+        id = Column(Integer, Identity(), primary_key=True)
+        user_id = Column(
+            Integer,
+            ForeignKey("users.id", ondelete="RESTRICT"),
+            nullable=False,
+            index=True,
+        )
+        event_id = Column(
+            Integer,
+            ForeignKey("events.id", ondelete="RESTRICT"),
+            nullable=False,
+            index=True,
+        )
+        quantity = Column(Integer, nullable=False)
+        total_price = Column(Numeric(10, 2), nullable=False)
+        status = Column(String, nullable=False, server_default="PENDING")
+        created_at = Column(
+            TIMESTAMP(timezone=True), nullable=False, server_default=func.now()
+        )
+        updated_at = Column(
+            TIMESTAMP(timezone=True),
+            nullable=False,
+            server_default=func.now(),
+            onupdate=func.now(),
+        )
+
+        __table_args__ = (
+            CheckConstraint("quantity > 0", name="check_positive_quantity"),
+            CheckConstraint(
+                "status IN ('PENDING', 'CONFIRMED', 'CANCELLED')",
+                name="check_valid_booking_status",
+            ),
+            CheckConstraint("total_price >= 0", name="check_positive_total_price"),
+        )

@@ -55,7 +55,8 @@ def update_user(
     update_data = user.model_dump(exclude_unset=True)
 
     if "password" in update_data:
-        update_data["password"] = hash_password(update_data["password"])
+        raw_password = update_data.pop("password")
+        update_data["hashed_password"] = hash_password(raw_password)
 
     for key, value in update_data.items():
         setattr(current_user, key, value)

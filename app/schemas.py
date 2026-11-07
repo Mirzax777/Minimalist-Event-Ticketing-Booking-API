@@ -116,7 +116,7 @@ class BookingOut(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    emial: EmailStr
+    email: EmailStr
     password: str = Field(None, min_length=8)
 
 

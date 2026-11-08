@@ -7,7 +7,7 @@ from app import models, oauth2, schemas
 from app.database import get_db
 from app.utils import hash_password
 
-router = APIRouter(prefix="/users", tag=["Users"])
+router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.get("/me", response_model=schemas.UserOut)

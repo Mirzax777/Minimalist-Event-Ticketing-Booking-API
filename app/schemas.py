@@ -5,20 +5,10 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 # ===========ROLE===========
-class RoleBase(BaseModel):
-    role_name: str = Field(..., min_length=2, max_length=50)
-
-
-class RoleCreate(RoleBase):
-    pass
-
-
-class RoleUpdate(BaseModel):
-    role_name: str | None = Field(None, min_length=2, max_length=50)
-
-
-class RoleOut(RoleBase):
+class RoleOut(BaseModel):
     id: int
+    role_name: str
+
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -26,7 +16,6 @@ class RoleOut(RoleBase):
 class UserBase(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     email: EmailStr
-    role_id: int
 
 
 class UserCreate(UserBase):
@@ -37,15 +26,12 @@ class UserUpdate(BaseModel):
     username: str | None = Field(None, min_length=3, max_length=50)
     email: EmailStr | None = None
     password: str | None = Field(None, min_length=8)
-    role_id: int | None = None
     is_active: bool | None = None
 
 
-class UserOut(BaseModel):
+class UserOut(UserBase):
     id: int
-    username: str
-    email: EmailStr
-    role_id: int
+    role: RoleOut
     is_active: bool
     created_at: datetime
     updated_at: datetime
@@ -78,7 +64,7 @@ class EventUpdate(BaseModel):
 
 class EventOut(EventBase):
     id: int
-    created_by: str | None
+    created_by: int
     available_seats: int
     created_at: datetime
     updated_at: datetime
@@ -113,17 +99,15 @@ class BookingOut(BaseModel):
 
 
 # ===========AUTH===========
-
-
 class LoginRequest(BaseModel):
     email: EmailStr
-    password: str = Field(None, min_length=8)
+    password: str = Field(..., min_length=8)
 
 
 class Token(BaseModel):
-    access_toke: str
+    access_token: str
     token_type: str = "bearer"
 
 
-class TokeData(BaseModel):
-    user_id: str | None = None
+class TokenData(BaseModel):
+    user_id: int | None = None
